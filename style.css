@@ -9,10 +9,19 @@ body {
     margin-bottom: 20px;
 }
 button {
-    padding: 10px 20px;
+    padding: 10px 40px;
     font-size: 16px;
     margin-bottom: 20px;
     cursor: pointer;
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    
+}
+
+button:hover {
+    background-color: #0056b3;
 }
 #transcript {
     font-size: 1.2em;
