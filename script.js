@@ -1,16 +1,18 @@
-
         // Stopwatch Logic
         let startTime, updatedTime, difference, tInterval;
         let running = false;
 
         const stopwatch = document.getElementById("stopwatch");
         const startStopBtn = document.getElementById("startStopBtn");
+        const downloadBtn = document.getElementById("downloadBtn");
 
         startStopBtn.addEventListener("click", startStop);
+        downloadBtn.addEventListener("click", downloadPDF);
 
         function startStop() {
             if (!running) {
                 startStopBtn.innerHTML = "Stop";
+                downloadBtn.style.display = "none"; // Hide download button
                 startTime = new Date().getTime();
                 tInterval = setInterval(getShowTime, 1);
                 running = true;
@@ -20,6 +22,7 @@
                 clearInterval(tInterval);
                 running = false;
                 stopSpeechRecognition();
+                downloadBtn.style.display = "inline-block"; // Show download button
             }
         }
 
@@ -67,4 +70,13 @@
                 recognition.stop();
             }
         }
-    
+
+        // Download PDF Logic
+        function downloadPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            const text = transcript.innerText; // Get transcript text
+            
+            doc.text(text, 10, 10);
+            doc.save("transcript.pdf");
+        }
