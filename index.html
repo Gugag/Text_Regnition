@@ -4,20 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Speech-to-Text</title>
-    
-    <link rel="stylesheet" href="style.css">
-    
+    <link rel="stylesheet" href="style.css">    
 </head>
 <body>
 
     <h1>Live Speech-to-Text</h1>
 
     <div class="stopwatch" id="stopwatch">00:00:00</div>
-    <button id="startStopBtn">Start</button>
+    <button id="startStopBtn">Start</button><br>
+    <button id="downloadBtn">Download PDF</button>
 
     <h2>Transcript:</h2>
     <div id="transcript"></div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="script.js"></script>
+       
 </body>
 </html>
