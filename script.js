@@ -7,7 +7,7 @@
         const downloadBtn = document.getElementById("downloadBtn");
 
         startStopBtn.addEventListener("click", startStop);
-        downloadBtn.addEventListener("click", downloadPDF);
+        downloadBtn.addEventListener("click", downloadTXT); // Update function to download as TXT
 
         function startStop() {
             if (!running) {
@@ -71,12 +71,17 @@
             }
         }
 
-        // Download PDF Logic
-        function downloadPDF() {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
+        // Download TXT Logic
+        function downloadTXT() {
             const text = transcript.innerText; // Get transcript text
-            
-            doc.text(text, 10, 10);
-            doc.save("transcript.pdf");
+
+            const blob = new Blob([text], { type: 'text/plain' }); // Create a blob with the transcript
+            const url = URL.createObjectURL(blob); // Create a URL for the blob
+
+            const a = document.createElement('a'); // Create an anchor element
+            a.href = url; // Set the href to the blob URL
+            a.download = 'transcript.txt'; // Set the download file name
+            document.body.appendChild(a); // Append anchor to the body
+            a.click(); // Simulate a click to trigger download
+            document.body.removeChild(a); // Remove the anchor from the document
         }
