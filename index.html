@@ -7,18 +7,33 @@
     <link rel="stylesheet" href="style.css">    
 </head>
 <body>
-
     <h1>Live Speech-to-Text</h1>
 
     <div class="stopwatch" id="stopwatch">00:00:00</div>
     <button id="startStopBtn">Start</button><br>
-    <button id="downloadBtn">Download PDF</button>
-
+    <button id="downloadBtn">Download TXT</button>
+    
     <h2>Transcript:</h2>
     <div id="transcript"></div>
+    <!-- Google Translate Element -->
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="script.js"></script>
-       
+    <div id="translate">To Translate Please</div>
+        
+    <div id="google_translate_element" type="select"></div>
+
+
+<script type="text/javascript">
+    function googleTranslateElementInit() {
+        new google.translate.TranslateElement(
+            {pageLanguage: 'en'},'google_translate_element');
+        
+    }
+
+   
+</script>
+
+<script type="text/javascript" 
+        src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit">
+</script>
 </body>
 </html>
