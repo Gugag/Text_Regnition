@@ -89,6 +89,6 @@ select::after {
     right: 15px;
     top: 15px;
     pointer-events: none; /* Ensure clicks go to the select, not the arrow */
-    color: black;
+    color: #fff;
     font-size: 12px;
 }
