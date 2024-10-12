@@ -35,7 +35,7 @@ button:hover {
     display: none; /* Hidden until Stop is pressed */
 }
 #google_translate_element select {
-    width: 120px;
+    width: 150px;
     height: 40px;
     padding: 10px 20px;
     font-size: 12px;
