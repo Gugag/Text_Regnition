@@ -1,63 +1,76 @@
 body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            margin: 50px;
-        }
-        .stopwatch {
-            font-size: 2em;
-            margin-bottom: 20px;
-        }
-        button {
-            padding: 10px 40px;
-            font-size: 16px;
-            margin-bottom: 20px;
-            cursor: pointer;
-            background-color: #007BFF;
-            color: white;
-            border: none;
-            border-radius: 5px;
-        }
-        button:hover {
-            background-color: #0056b3;
-        }
-        #transcript {
-            font-size: 1.2em;
-            border: 1px solid #ddd;
-            padding: 10px;
-            width: 100%;
-            max-width: 600px;
-            margin: 20px auto;
-            min-height: 150px;
-            text-align: left;
-            white-space: pre-wrap; /* Preserve newlines */
-        }
-        #downloadBtn {
-            display: none; /* Hidden until Stop is pressed */
-        }
-        /* Style for the translate dropdown */
-        #google_translate_element select {
-            width: 150px;
-            height: 40px;
-            padding: 10px 20px;
-            font-size: 12px;
-            text-align: left;
-            background-color: transparent;
-            color: rgb(0, 0, 0);
-            border: 2px solid;
-            border-color: #007BFF;
-            border-radius: 5px;
-            cursor: pointer;
-            appearance: none;  /*Remove default select styling */
-        }
-        /*#google_translate_element select:hover {
-            background-color: red;
-        }*/
-        #google_translate_element {
-            margin-bottom: 10px;  
-            margin-top: 5px;
-        }
-        #translate{
-            font-size: 15px;
-            font-weight: bold;
-            
-        }
+    font-family: Arial, sans-serif;
+    text-align: center;
+    margin: 50px;
+}
+.stopwatch {
+    font-size: 2em;
+    margin-bottom: 20px;
+}
+button {
+    padding: 10px 40px;
+    font-size: 16px;
+    margin-bottom: 20px;
+    cursor: pointer;
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    border-radius: 5px;
+}
+button:hover {
+    background-color: #0056b3;
+}
+#transcript {
+    font-size: 1.2em;
+    border: 1px solid #ddd;
+    padding: 10px;
+    width: 100%;
+    max-width: 600px;
+    margin: 20px auto;
+    min-height: 150px;
+    text-align: left;
+    white-space: pre-wrap; /* Preserve newlines */
+}
+#downloadBtn, #ttsBtn {
+    display: none; /* Hidden until Stop is pressed */
+}
+#google_translate_element select {
+    width: 150px;
+    height: 40px;
+    padding: 10px 20px;
+    font-size: 12px;
+    text-align: left;
+    background-color: transparent;
+    color: rgb(0, 0, 0);
+    border: 2px solid;
+    border-color: #007BFF;
+    border-radius: 5px;
+    cursor: pointer;
+    appearance: none;  /*Remove default select styling */
+}
+#google_translate_element {
+    margin-bottom: 10px;  
+    margin-top: 5px;
+}
+#translate{
+    font-size: 15px;
+    font-weight: bold;
+}
+#language-selection {
+    margin-bottom: 20px;
+}
+
+#language {
+    width: 150px;
+    height: 40px;
+    padding: 10px 20px;
+    font-size: 12px;
+    text-align: left;
+    background-color: #007BFF;
+    color: #fff;
+    border: 2px solid #007BFF;
+    border-radius: 5px;
+    cursor: pointer;
+    appearance: none;
+    text-align: center;
+}
