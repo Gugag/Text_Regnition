@@ -1,82 +1,79 @@
 body {
     font-family: Arial, sans-serif;
-    background-color: #ffffff;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    margin: 0;
-}
-
-.container {
-    background-color: #fff;
-    padding: 20px;
-    border-radius: 10px;
-    width: 300px;
-}
-h1, h3 {
     text-align: center;
+    margin: 50px;
 }
-.form-group {
+.stopwatch {
+    font-size: 2em;
     margin-bottom: 20px;
 }
-label {
-    display: block;
-    margin-bottom: 5px;
-}
-input, select {
-    width: 92%;
-    padding: 10px;
-    margin-bottom: 15px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    text-align: left;
-    font-size: 15px;
-}
 button {
-    width: 100%;
-    padding: 10px;
+    padding: 10px 40px;
+    font-size: 16px;
+    margin-bottom: 20px;
+    cursor: pointer;
     background-color: #007BFF;
     color: white;
     border: none;
     border-radius: 5px;
-    cursor: pointer;
-    margin-bottom: 10px;
 }
 button:hover {
     background-color: #0056b3;
 }
-#qr-code {
-    text-align: center;
-    width: 300px;
-    margin-top: 10px;
+#transcript {
+    font-size: 1.2em;
+    border: 1px solid #ddd;
+    padding: 10px;
+    width: 100%;
+    max-width: 600px;
+    margin: 20px auto;
+    min-height: 150px;
+    text-align: left;
+    white-space: pre-wrap; /* Preserve newlines */
 }
-.download-buttons button {
-    width: 48%;
+#downloadBtn, #ttsBtn {
+    display: none; /* Hidden until Stop is pressed */
 }
-.download-buttons {
-    display: flex;
-    justify-content: space-between;
+#google_translate_element select {
+    width: 150px;
+    height: 40px;
+    padding: 10px 20px;
+    font-size: 12px;
+    text-align: left;
+    background-color: transparent;
+    color: rgb(0, 0, 0);
+    border: 2px solid;
+    border-color: #007BFF;
+    border-radius: 5px;
+    cursor: pointer;
+    appearance: none;  /*Remove default select styling */
+}
+#google_translate_element {
+    margin-bottom: 10px;  
+    margin-top: 5px;
+}
+#translate{
+    font-size: 15px;
+    font-weight: bold;
+}
+#language-selection {
+    margin-bottom: 20px;
 }
 
-#type {
-    width: 300px;
+#language {
+    width: 150px;
     height: 40px;
     padding: 10px 20px;
     font-size: 12px;
     text-align: left;
     background-color: #007BFF;
     color: #fff;
-    border: 0.1px solid #007BFF;
+    border: 2px solid #007BFF;
     border-radius: 5px;
     cursor: pointer;
     appearance: none;
     
 }
-#type:hover {
-    background-color: #0056b3;
-}
-
 select {
     background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg xmlns%3D%22http%3A//www.w3.org/2000/svg%22 viewBox%3D%220 0 24 24%22 fill%3D%22none%22 stroke%3D%22%23000000%22 stroke-width%3D%222%22 stroke-linecap%3D%22round%22 stroke-linejoin%3D%22round%22%3E%3Cpolyline points%3D%226 9 12 15 18 9%22/%3E%3C/svg%3E');
     background-repeat: no-repeat;
