@@ -3,63 +3,70 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QR Code Generator</title>
-    <link rel="stylesheet" href="styles.css">
-    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <title>Live Speech-to-Text with Translation</title>
+    <link rel="stylesheet" href="style.css"> <!-- Link to the CSS file -->
 </head>
-    
 <body>
-    <div class="container">
-        <h1>QR Code Generator</h1>
+    <h1>Live Speech-to-Text</h1>
 
-        <div class="form-group">
-            <label for="type">Select QR Code Type</label>
-            <select id="type" onchange="showFields()">
-                <option value="link">Website</option>
-                <option value="pdf">PDF</option>
-                <option value="vcard">vCard</option>
-                <option value="text">Text</option>
-                <option value="wifi">WiFi</option>
-                <!-- Add more options as needed -->
-            </select>
-        </div>
+    <div class="stopwatch" id="stopwatch">00:00:00</div>
+    <button id="startStopBtn">Start</button><br>
+    <button id="downloadBtn">Download TXT</button>
 
-        <!-- Input fields for different QR code types -->
-        <div class="form-group" id="link-group">
-            <input type="text" id="link" placeholder="Enter Website URL">
-        </div>
-        <div class="form-group" id="pdf-group" style="display:none;">
-            <input type="text" id="pdf" placeholder="Enter PDF Link">
-        </div>
-        <div class="form-group" id="vcard-group" style="display:none;">
-            <input type="text" id="vcard-name" placeholder="Enter Name">
-            <input type="text" id="vcard-phone" placeholder="Enter Phone Number">
-            <input type="text" id="vcard-email" placeholder="Enter Email">
-        </div>
-        <div class="form-group" id="text-group" style="display:none;">
-            <input type="text" id="text" placeholder="Enter Text">
-        </div>
-        <div class="form-group" id="wifi-group" style="display:none;">
-            <input type="text" id="wifi-ssid" placeholder="Enter WiFi SSID">
-            <input type="text" id="wifi-password" placeholder="Enter WiFi Password">
-            <select id="type">
-                <option value="WPA">WPA/WPA2</option>
-                <option value="WEP">WEP</option>
-                <option value="">None</option>
-            </select>
-        </div>
-
-        <button onclick="generateQRCode()">Generate QR Code</button>
-        <div id="qr-code"></div>
-
-        <div class="download-buttons" style="display:none;" id="download-buttons">
-            <button onclick="downloadAsPDF()">Download as PDF</button>
-            <button onclick="downloadAsJPEG()">Download as JPEG</button>
-        </div>
+    <!-- Language Selection Dropdown -->
+    <div id="language-selection">
+        <label for="language">Choose Speech Language: </label>
+        <select id="language">
+            <option value="en-US">English </option>
+            <option value="en-GB">English (United Kingdom)</option>
+            <option value="ru-RU">Russian</option>
+            <option value="es-ES">Spanish (Spain)</option>
+            <option value="es-MX">Spanish (Mexico)</option>
+            <option value="fr-FR">French</option>
+            <option value="de-DE">German</option>
+            <option value="it-IT">Italian</option>
+            <option value="ja-JP">Japanese</option>
+            <option value="ko-KR">Korean</option>
+            <option value="zh-CN">Mandarin (China)</option>
+            <option value="zh-TW">Mandarin (Taiwan)</option>
+            <option value="nl-NL">Dutch</option>
+            <option value="pt-BR">Portuguese (Brazil)</option>
+            <option value="pt-PT">Portuguese (Portugal)</option> 
+            <option value="hi-IN">Hindi</option>
+            <option value="ar-SA">Arabic</option>
+            <option value="th-TH">Thai</option>
+            <option value="tr-TR">Turkish</option>
+            <option value="da-DK">Danish</option>
+            <option value="sv-SE">Swedish</option>
+            <option value="fi-FI">Finnish</option>
+            <option value="he-IL">Hebrew</option>
+            <option value="pl-PL">Polish</option>
+            <option value="el-GR">Greek</option>
+            <option value="hu-HU">Hungarian</option>
+            <option value="nb-NO">Norwegian</option>
+            <option value="cs-CZ">Czech</option>
+            <option value="sk-SK">Slovak</option>
+            <option value="bn-IN">Bengali</option>
+            <option value="ca-ES">Catalan</option>
+            <option value="uk-UA">Ukrainian</option>
+        </select>
+        
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="script.js"></script>
+    <h2>Transcript:</h2>
+    <div id="transcript" contenteditable="true"></div>
+
+    <h2 id="translate">To Translate Please</h2>
+    <div id="google_translate_element"></div> <!-- Google Translate dropdown -->
+
+    <!-- Google Translate API Script -->
+    <script type="text/javascript">
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({ pageLanguage: 'en' }, 'google_translate_element');
+        }
+    </script>
+    <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+    <script src="script.js"></script> <!-- Link to the JavaScript file -->
 </body>
 </html>
