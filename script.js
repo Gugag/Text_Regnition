@@ -1,132 +1,64 @@
-// Stopwatch Logic
-let startTime, updatedTime, difference, tInterval;
-let running = false;
+let qrCodeDataUrl;
 
-const stopwatch = document.getElementById("stopwatch");
-const startStopBtn = document.getElementById("startStopBtn");
-const downloadBtn = document.getElementById("downloadBtn");
-const transcript = document.getElementById("transcript");
-const languageSelect = document.getElementById("language"); // Get the language selection dropdown
+        function showFields() {
+            const type = document.getElementById('type').value;
+            document.getElementById('link-group').style.display = type === 'link' ? 'block' : 'none';
+            document.getElementById('pdf-group').style.display = type === 'pdf' ? 'block' : 'none';
+            document.getElementById('vcard-group').style.display = type === 'vcard' ? 'block' : 'none';
+            document.getElementById('text-group').style.display = type === 'text' ? 'block' : 'none';
+            document.getElementById('wifi-group').style.display = type === 'wifi' ? 'block' : 'none';
+        }
 
-startStopBtn.addEventListener("click", startStop);
-downloadBtn.addEventListener("click", downloadTXT);
+        function generateQRCode() {
+            const type = document.getElementById('type').value;
+            let data = '';
 
-function startStop() {
-    if (!running) {
-        startStopBtn.innerHTML = "Stop";
-        downloadBtn.style.display = "none";
-        startTime = new Date().getTime();
-        tInterval = setInterval(getShowTime, 1);
-        running = true;
-        startSpeechRecognition();
-    } else {
-        startStopBtn.innerHTML = "Start";
-        clearInterval(tInterval);
-        running = false;
-        stopSpeechRecognition();
-        downloadBtn.style.display = "inline-block";
-    }
-}
-
-function getShowTime() {
-    updatedTime = new Date().getTime();
-    difference = updatedTime - startTime;
-    let hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    let minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
-    let seconds = Math.floor((difference % (1000 * 60)) / 1000);
-    hours = (hours < 10) ? "0" + hours : hours;
-    minutes = (minutes < 10) ? "0" + minutes : minutes;
-    seconds = (seconds < 10) ? "0" + seconds : seconds;
-    stopwatch.innerHTML = hours + ":" + minutes + ":" + seconds;
-}
-
-// Speech Recognition Logic
-let recognition;
-
-function startSpeechRecognition() {
-    if (!('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)) {
-        alert('Your browser does not support speech recognition.');
-        return;
-    }
-
-    recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-    recognition.continuous = true;
-    recognition.interimResults = false;
-
-    const selectedLanguage = languageSelect.value;
-    recognition.lang = selectedLanguage; // Set recognition language based on selection
-
-    try {
-        recognition.start();
-    } catch (e) {
-        console.error('Speech recognition start error:', e);
-        alert('Microphone permission denied or an error occurred.');
-        return;
-    }
-
-    recognition.onstart = function() {
-        console.log('Speech recognition started');
-    };
-
-    recognition.onresult = function(event) {
-        let finalTranscript = '';
-        for (let i = event.resultIndex; i < event.results.length; ++i) {
-            if (event.results[i].isFinal) {
-                finalTranscript += event.results[i][0].transcript;
+            if (type === 'link') {
+                data = document.getElementById('link').value;
+            } else if (type === 'pdf') {
+                data = document.getElementById('pdf').value;
+            } else if (type === 'vcard') {
+                const name = document.getElementById('vcard-name').value;
+                const phone = document.getElementById('vcard-phone').value;
+                const email = document.getElementById('vcard-email').value;
+                data = `BEGIN:VCARD\nVERSION:3.0\nFN:${name}\nTEL:${phone}\nEMAIL:${email}\nEND:VCARD`;
+            } else if (type === 'text') {
+                data = document.getElementById('text').value;
+            } else if (type === 'wifi') {
+                const ssid = document.getElementById('wifi-ssid').value;
+                const password = document.getElementById('wifi-password').value;
+                const encryption = document.getElementById('wifi-encryption').value;
+                data = `WIFI:T:${encryption};S:${ssid};P:${password};;`;
             }
+
+            QRCode.toDataURL(data, function (err, url) {
+                if (err) console.error(err);
+
+                const img = document.createElement('img');
+                img.src = url;
+                const qrCodeContainer = document.getElementById('qr-code');
+                qrCodeContainer.innerHTML = '';
+                qrCodeContainer.appendChild(img);
+
+                qrCodeDataUrl = url;
+
+                const downloadButtons = document.getElementById('download-buttons');
+                downloadButtons.style.display = 'flex';
+            });
         }
-        appendTranscript(finalTranscript);
-    };
 
-    recognition.onerror = function(event) {
-        console.error('Speech recognition error:', event.error);
-        if (event.error === 'not-allowed') {
-            alert('Microphone access is not allowed. Please enable microphone permissions in your browser.');
-        } else if (event.error === 'service-not-allowed') {
-            alert(`The selected language (${selectedLanguage}) is not supported by the speech recognition service.`);
-        } else {
-            alert(`Speech recognition error: ${event.error}`);
+        function downloadAsPDF() {
+            const jsPDF = window.jspdf.jsPDF;
+            const pdf = new jsPDF();
+            pdf.addImage(qrCodeDataUrl, 'PNG', 15, 40, 180, 180);
+            pdf.save('qr_code.pdf');
         }
-    };
 
-    recognition.onend = function() {
-        console.log('Speech recognition ended');
-    };
-}
-
-function stopSpeechRecognition() {
-    if (recognition) {
-        recognition.stop();
-    }
-}
-
-// Function to append new transcript text and highlight it
-function appendTranscript(text) {
-    const newSpan = document.createElement('span');
-    newSpan.innerHTML = text + "<br>";
-    newSpan.classList.add('highlight');  // Highlight new text
-    transcript.appendChild(newSpan);
-    
-    // Scroll to the new text
-    transcript.scrollTop = transcript.scrollHeight;
-    
-    // Remove the highlight after 2 seconds
-    setTimeout(() => {
-        newSpan.classList.remove('highlight');
-    }, 2000);
-}
-
-// Download TXT Logic
-function downloadTXT() {
-    const text = transcript.innerText;
-
-    const blob = new Blob([text], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'transcript.txt';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-}
+        function downloadAsJPEG() {
+            const link = document.createElement('a');
+            link.href = qrCodeDataUrl;
+            link.download = 'qr_code.jpeg';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
