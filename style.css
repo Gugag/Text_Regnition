@@ -42,8 +42,7 @@ button:hover {
     text-align: left;
     background-color: transparent;
     color: rgb(0, 0, 0);
-    border: 2px solid;
-    border-color: #007BFF;
+    border: 2px solid #ccc;
     border-radius: 5px;
     cursor: pointer;
     appearance: none;  /*Remove default select styling */
@@ -68,7 +67,7 @@ button:hover {
     text-align: left;
     background-color: transparent;
     color: black;
-    border-radius: 5px;
+    border: 2px solid #ccc;
     cursor: pointer;
     appearance: none;
     
