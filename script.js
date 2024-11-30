@@ -44,22 +44,59 @@ function getShowTime() {
 let recognition;
 
 function startSpeechRecognition() {
-    if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.speechHandler) {
-        const selectedLanguage = languageSelect.value;
-        window.webkit.messageHandlers.speechHandler.postMessage({
-            command: "start",
-            language: selectedLanguage
-        });
-    } else {
-        alert("Speech recognition is not available in this environment.");
+    if (!('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)) {
+        alert('Your browser does not support speech recognition.');
+        return;
     }
+
+    recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+    recognition.continuous = true;
+    recognition.interimResults = false;
+
+    const selectedLanguage = languageSelect.value;
+    recognition.lang = selectedLanguage; // Set recognition language based on selection
+
+    try {
+        recognition.start();
+    } catch (e) {
+        console.error('Speech recognition start error:', e);
+        alert('Microphone permission denied or an error occurred.');
+        return;
+    }
+
+    recognition.onstart = function() {
+        console.log('Speech recognition started');
+    };
+
+    recognition.onresult = function(event) {
+        let finalTranscript = '';
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+            if (event.results[i].isFinal) {
+                finalTranscript += event.results[i][0].transcript;
+            }
+        }
+        appendTranscript(finalTranscript);
+    };
+
+    recognition.onerror = function(event) {
+        console.error('Speech recognition error:', event.error);
+        if (event.error === 'not-allowed') {
+            alert('Microphone access is not allowed. Please enable microphone permissions in your browser.');
+        } else if (event.error === 'service-not-allowed') {
+            alert(`The selected language (${selectedLanguage}) is not supported by the speech recognition service.`);
+        } else {
+            alert(`Speech recognition error: ${event.error}`);
+        }
+    };
+
+    recognition.onend = function() {
+        console.log('Speech recognition ended');
+    };
 }
 
 function stopSpeechRecognition() {
-    if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.speechHandler) {
-        window.webkit.messageHandlers.speechHandler.postMessage({
-            command: "stop"
-        });
+    if (recognition) {
+        recognition.stop();
     }
 }
 
