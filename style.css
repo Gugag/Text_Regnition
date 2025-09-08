@@ -90,6 +90,7 @@ select, button{
   padding: 10px 14px;
   background: var(--card);
   color: var(--text);
+  min-height: 44px; /* comfortable tap target */
 }
 select:focus, button:focus{ outline: 3px solid var(--ring); outline-offset: 2px; }
 
@@ -100,6 +101,20 @@ button.secondary{ background: #132033; border-color: #243b61; }
 button.ghost{ background: transparent; }
 
 button:disabled{ opacity:.5; cursor:not-allowed; }
+
+/* --- Fix: Pause button legibility in Light theme --- */
+button.secondary{ color:#fff; } /* default: white text on dark secondary */
+:root.light button.secondary{
+  background:#e9eef7;
+  border-color:#d6e3ef;
+  color:#0f172a; /* dark text on light background */
+}
+:root.light button.secondary:disabled{
+  opacity:1;              /* keep visible when disabled */
+  color:#94a3b8;
+  background:#f1f5f9;
+  border-color:#e2e8f0;
+}
 
 .hint{ margin:8px 0 0 0; color:var(--muted); font-size: 12px; }
 
@@ -118,22 +133,24 @@ button:disabled{ opacity:.5; cursor:not-allowed; }
 .muted{ color: var(--muted); }
 .small{ font-size: 12px; }
 
-/* --- Fix: Pause button legibility in Light theme --- */
-button.secondary{ color:#fff; } /* default: white text on dark secondary */
-:root.light button.secondary{
-  /* lighter secondary on light theme for contrast */
-  background:#e9eef7;
-  border-color:#d6e3ef;
-  color:#0f172a; /* dark text on light background */
-}
-:root.light button.secondary:disabled{
-  /* keep it visible even when disabled */
-  opacity:1;
-  color:#94a3b8;
-  background:#f1f5f9;
-  border-color:#e2e8f0;
-}
-
-
 /* Theme toggle */
-#themeToggle{ font-size: 18px; background:transparent; border:1px solid var(--border); width: 40px; height: 40px; display:inline-grid; place-items:center; }
+#themeToggle{
+  font-size: 18px;
+  background:transparent;
+  border:1px solid var(--border);
+  width: 40px; height: 40px;
+  display:inline-grid; place-items:center;
+}
+
+/* -------- Optional responsiveness niceties -------- */
+@media (max-width: 480px){
+  .btn-row button{ flex: 1 1 48%; }  /* 2 per row on small phones */
+  .stopwatch{ min-width: auto; width: 100%; }
+  select{ width: 100%; }
+  #google_translate_element{ width:100%; display:block; }
+}
+
+@media (min-width:700px) and (max-width:1024px){
+  .controls .row{ grid-template-columns: 2fr 1fr; } /* language wider than timer */
+  .container{ padding-left: 20px; padding-right: 20px; }
+}
