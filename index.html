@@ -1,77 +1,86 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta property="og:title" content="Speech to Text Transcript">
-  <meta property="og:description" content="Free Speech to Text Transcript, you can use it without registration">
-  <meta property="og:image" content="https://i.ibb.co/zHN26wR/resized-image-4.png">
-  <meta property="og:url" content="https://itdata.ge">
-  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#0ea5e9" />
+  <meta name="description" content="Free, no-login speech‑to‑text with live translation. Works in modern browsers." />
+  <meta property="og:title" content="Live Speech to Text + Translate" />
+  <meta property="og:description" content="Free Speech to Text Transcript, you can use it without registration" />
+  <meta property="og:image" content="https://i.ibb.co/zHN26wR/resized-image-4.png" />
+  <meta property="og:url" content="https://itdata.ge" />
+  <link rel="icon" href="icons/icon-192.png" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <link rel="manifest" href="manifest.webmanifest" />
   <title>Live Speech to Text with Translation</title>
-  <link rel="stylesheet" href="style.css"> <!-- Link to the CSS file -->
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <h1>Live Speech to Text</h1>
+  <header class="site-header">
+    <div class="container header-inner">
+      <h1>Live Speech to Text</h1>
+      <div class="right-actions">
+        <button id="themeToggle" title="Toggle dark mode" aria-label="Toggle dark mode">🌙</button>
+        <span id="recStatus" class="pill idle" aria-live="polite">Idle</span>
+      </div>
+    </div>
+  </header>
 
-  <div class="stopwatch" id="stopwatch">00:00:00</div>
-  <button id="startStopBtn">Start</button><br>
-  <button id="downloadBtn">Download TXT</button>
+  <main class="container">
+    <section class="card">
+      <div class="controls">
+        <div class="row">
+          <div class="control">
+            <label for="language">Speech language</label>
+            <select id="language" aria-label="Speech language"></select>
+          </div>
 
-  <!-- Language Selection Dropdown -->
-  <div id="language-selection">
-    <label id="lngtxt" for="language">Choose Speech Language:</label>
-    <select id="language">
-      <option value="en-US">English</option>
-      <option value="en-GB">English (United Kingdom)</option>
-      <option value="ru-RU">Russian</option>
-      <option value="es-ES">Spanish (Spain)</option>
-      <option value="es-MX">Spanish (Mexico)</option>
-      <option value="fr-FR">French</option>
-      <option value="de-DE">German</option>
-      <option value="it-IT">Italian</option>
-      <option value="ja-JP">Japanese</option>
-      <option value="ko-KR">Korean</option>
-      <option value="zh-CN">Mandarin (China)</option>
-      <option value="zh-TW">Mandarin (Taiwan)</option>
-      <option value="nl-NL">Dutch</option>
-      <option value="pt-BR">Portuguese (Brazil)</option>
-      <option value="pt-PT">Portuguese (Portugal)</option>
-      <option value="hi-IN">Hindi</option>
-      <option value="ar-SA">Arabic</option>
-      <option value="th-TH">Thai</option>
-      <option value="tr-TR">Turkish</option>
-      <option value="da-DK">Danish</option>
-      <option value="sv-SE">Swedish</option>
-      <option value="fi-FI">Finnish</option>
-      <option value="he-IL">Hebrew</option>
-      <option value="pl-PL">Polish</option>
-      <option value="el-GR">Greek</option>
-      <option value="hu-HU">Hungarian</option>
-      <option value="nb-NO">Norwegian</option>
-      <option value="cs-CZ">Czech</option>
-      <option value="sk-SK">Slovak</option>
-      <option value="bn-IN">Bengali</option>
-      <option value="ca-ES">Catalan</option>
-      <option value="uk-UA">Ukrainian</option>
-    </select>
-  </div>
+          <div class="control">
+            <label>Timer</label>
+            <div class="stopwatch" id="stopwatch" aria-live="polite">00:00:00</div>
+          </div>
+        </div>
 
-  <h2>Transcript:</h2>
-  <div id="transcript" contenteditable="true"></div>
-  <!-- The interim transcript element will be created dynamically by the script if needed -->
+        <div class="btn-row">
+          <button id="startStopBtn" class="primary">Start</button>
+          <button id="pauseBtn" class="secondary" disabled>Pause</button>
+          <button id="clearBtn" class="ghost" disabled>Clear</button>
+          <button id="copyBtn" class="ghost" disabled>Copy</button>
+          <button id="downloadBtn" class="ghost" disabled>Download TXT</button>
+        </div>
+        <p class="hint">Tip: Ctrl/⌘+Enter toggles Start/Stop. Your transcript autosaves in this browser.</p>
+      </div>
+    </section>
 
-  <h2 id="translate">To Translate Please</h2>
-  <div id="google_translate_element"></div> <!-- Google Translate dropdown -->
+    <section class="card">
+      <div class="transcript-wrap">
+        <div class="transcript-header">
+          <h2>Transcript</h2>
+          <div id="counters" class="muted">0 words • 0 chars</div>
+        </div>
+        <div id="transcript" contenteditable="true" spellcheck="true" aria-label="Transcript editor"></div>
+        <div id="interim" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2 id="translate">Translate this page</h2>
+      <div id="google_translate_element"></div>
+    </section>
+  </main>
+
+  <footer class="container muted small">
+    <p>Browser requirement: Chrome/Edge (desktop & Android) and Safari (iOS/macOS) support Web Speech API. Some older/locked-down browsers may not. Microphone permission is required.</p>
+  </footer>
 
   <!-- Google Translate API Script -->
-  <script type="text/javascript">
+  <script>
     function googleTranslateElementInit() {
       new google.translate.TranslateElement({ pageLanguage: 'en' }, 'google_translate_element');
     }
   </script>
-  <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+  <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 
-  <script src="script.js"></script> <!-- Link to the JavaScript file -->
-</body>
+  <script src="script.js"></script>
+\n  <script>if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./service-worker.js').catch(()=>{}));}</script>\n</body>
 </html>
