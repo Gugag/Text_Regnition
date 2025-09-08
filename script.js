@@ -1,165 +1,287 @@
-// Stopwatch Logic
-let startTime, updatedTime, difference, tInterval;
-let running = false;
+// Speech-to-text app with autosave, counters, robust start/stop, pause, and better UX
+(() => {
+  const els = {
+    startStop: document.getElementById('startStopBtn'),
+    pause: document.getElementById('pauseBtn'),
+    clear: document.getElementById('clearBtn'),
+    copy: document.getElementById('copyBtn'),
+    download: document.getElementById('downloadBtn'),
+    transcript: document.getElementById('transcript'),
+    interim: document.getElementById('interim'),
+    stopwatch: document.getElementById('stopwatch'),
+    language: document.getElementById('language'),
+    counters: document.getElementById('counters'),
+    recStatus: document.getElementById('recStatus'),
+    themeToggle: document.getElementById('themeToggle'),
+  };
 
-const stopwatch = document.getElementById("stopwatch");
-const startStopBtn = document.getElementById("startStopBtn");
-const downloadBtn = document.getElementById("downloadBtn");
-const transcript = document.getElementById("transcript");
-const languageSelect = document.getElementById("language"); // Get the language selection dropdown
+  // ---------- Theme ----------
+  (function initTheme(){
+    const saved = localStorage.getItem('stt-theme');
+    if(saved === 'light') document.documentElement.classList.add('light');
+    if(saved === 'dark') document.documentElement.classList.remove('light'); // dark is default
+    els.themeToggle.textContent = document.documentElement.classList.contains('light') ? '🌙' : '☀️';
+  })();
+  els.themeToggle.addEventListener('click', () => {
+    const root = document.documentElement;
+    const light = root.classList.toggle('light');
+    localStorage.setItem('stt-theme', light ? 'light' : 'dark');
+    els.themeToggle.textContent = light ? '🌙' : '☀️';
+  });
 
-startStopBtn.addEventListener("click", startStop);
-downloadBtn.addEventListener("click", downloadTXT);
+  // ---------- Populate languages (common set + persist selection) ----------
+  const languages = [
+    'en-US','en-GB','ru-RU','es-ES','es-MX','fr-FR','de-DE','it-IT','ja-JP','ko-KR','zh-CN','zh-TW','nl-NL','pt-BR',
+    'pt-PT','hi-IN','ar-SA','th-TH','tr-TR','da-DK','sv-SE','fi-FI','he-IL','pl-PL','el-GR','hu-HU','nb-NO','cs-CZ',
+    'sk-SK','bn-IN','ca-ES','uk-UA','ka-GE'
+  ];
+  const langFrag = document.createDocumentFragment();
+  languages.forEach(code => {
+    const opt = document.createElement('option');
+    opt.value = code; opt.textContent = code;
+    langFrag.appendChild(opt);
+  });
+  els.language.appendChild(langFrag);
+  const savedLang = localStorage.getItem('stt-lang') || 'en-US';
+  els.language.value = savedLang;
 
-function startStop() {
-    if (!running) {
-        startStopBtn.innerHTML = "Stop";
-        downloadBtn.style.display = "none";
-        startTime = new Date().getTime();
-        tInterval = setInterval(getShowTime, 1);
-        running = true;
-        startSpeechRecognition();
-    } else {
-        startStopBtn.innerHTML = "Start";
-        clearInterval(tInterval);
-        running = false;
-        stopSpeechRecognition();
-        downloadBtn.style.display = "inline-block";
-    }
-}
+  // ---------- Autosave load ----------
+  const savedText = localStorage.getItem('stt-transcript') || '';
+  if(savedText) {
+    els.transcript.textContent = savedText;
+    updateCounters();
+    els.clear.disabled = false;
+    els.copy.disabled = false;
+    els.download.disabled = savedText.trim().length === 0;
+  }
 
-function getShowTime() {
-    updatedTime = new Date().getTime();
-    difference = updatedTime - startTime;
-    let hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    let minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
-    let seconds = Math.floor((difference % (1000 * 60)) / 1000);
-    hours = (hours < 10) ? "0" + hours : hours;
-    minutes = (minutes < 10) ? "0" + minutes : minutes;
-    seconds = (seconds < 10) ? "0" + seconds : seconds;
-    stopwatch.innerHTML = hours + ":" + minutes + ":" + seconds;
-}
+  // ---------- Stopwatch ----------
+  let t0 = 0, timerId = null, elapsedMs = 0;
+  function fmt(n){ return n.toString().padStart(2, '0'); }
+  function startTimer(){
+    if(timerId) return;
+    t0 = performance.now() - elapsedMs;
+    timerId = setInterval(() => {
+      const t = performance.now() - t0;
+      const sec = Math.floor(t/1000);
+      const h = Math.floor(sec/3600);
+      const m = Math.floor((sec%3600)/60);
+      const s = sec%60;
+      els.stopwatch.textContent = `${fmt(h)}:${fmt(m)}:${fmt(s)}`;
+    }, 250);
+  }
+  function stopTimer(){
+    if(timerId){ clearInterval(timerId); timerId = null; }
+    elapsedMs = performance.now() - t0;
+  }
+  function resetTimer(){
+    if(timerId){ clearInterval(timerId); timerId = null; }
+    elapsedMs = 0;
+    els.stopwatch.textContent = '00:00:00';
+  }
 
-// Speech Recognition Logic
-let recognition;
+  // ---------- Speech Recognition ----------
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  let recognition = null;
+  let isRecording = false;
+  let isPaused = false;
+  let restartOnEnd = false;
 
-function startSpeechRecognition() {
-    if (!('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)) {
-        alert('Your browser does not support speech recognition.');
-        return;
-    }
+  function setStatus(txt, recording=false){
+    els.recStatus.textContent = txt;
+    els.recStatus.className = `pill ${recording ? 'recording' : 'idle'}`;
+  }
 
-    recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+  if(!SR){
+    setStatus('Unsupported');
+    els.startStop.disabled = true;
+    els.pause.disabled = true;
+    console.warn('Web Speech API is not supported in this browser.');
+  } else {
+    recognition = new SR();
     recognition.continuous = true;
-    recognition.interimResults = true; // Enable interim results for real-time feedback
+    recognition.interimResults = true;
+    recognition.lang = savedLang;
 
-    const selectedLanguage = languageSelect.value;
-    recognition.lang = selectedLanguage; // Set recognition language based on selection
-
-    try {
-        recognition.start();
-    } catch (e) {
-        console.error('Speech recognition start error:', e);
-        alert('Microphone permission denied or an error occurred.');
-        return;
-    }
-
-    recognition.onstart = function() {
-        console.log('Speech recognition started');
-    };
-
-    recognition.onresult = function(event) {
-        let finalTranscript = '';
-        let interimTranscript = '';
-        for (let i = event.resultIndex; i < event.results.length; ++i) {
-            const transcriptSegment = event.results[i][0].transcript;
-            if (event.results[i].isFinal) {
-                finalTranscript += transcriptSegment;
-            } else {
-                interimTranscript += transcriptSegment;
-            }
-        }
-        if (finalTranscript) {
-            appendTranscript(finalTranscript);
-            // Clear interim display after finalizing text
-            displayInterimTranscript('');
-        }
-        // Continuously update interim results
-        displayInterimTranscript(interimTranscript);
-    };
-
-    recognition.onerror = function(event) {
-        console.error('Speech recognition error:', event.error);
-        if (event.error === 'not-allowed') {
-            alert('Microphone access is not allowed. Please enable microphone permissions in your browser.');
-        } else if (event.error === 'service-not-allowed') {
-            alert(`The selected language (${selectedLanguage}) is not supported by the speech recognition service.`);
+    recognition.onresult = (evt) => {
+      let interim = '';
+      for(let i = evt.resultIndex; i < evt.results.length; i++){
+        const res = evt.results[i];
+        const text = res[0].transcript;
+        if(res.isFinal){
+          appendText(text);
         } else {
-            alert(`Speech recognition error: ${event.error}`);
+          interim += text;
         }
+      }
+      els.interim.textContent = interim;
     };
 
-    recognition.onend = function() {
-        console.log('Speech recognition ended');
-        // Automatically restart recognition if the stopwatch is still running.
-        if (running) {
-            try {
-                recognition.start();
-            } catch (e) {
-                console.error('Error restarting speech recognition:', e);
-            }
-        }
+    recognition.onend = () => {
+      setStatus('Idle');
+      if(isRecording && restartOnEnd && !isPaused){
+        try { recognition.start(); setStatus('Listening…', true); } catch(e){ /* ignore */ }
+      }
     };
-}
 
-function stopSpeechRecognition() {
-    if (recognition) {
-        recognition.stop();
+    recognition.onerror = (e) => {
+      console.error('recognition error', e);
+      // Auto-recover on "no-speech" or "network" or "aborted"
+      if(['no-speech','aborted','network'].includes(e.error)){
+        if(isRecording && !isPaused){
+          try { recognition.start(); setStatus('Listening…', true); } catch(err){ /* ignore */ }
+        }
+      } else {
+        setStatus(`Error: ${e.error}`);
+      }
+    };
+  }
+
+  function appendText(t){
+    // Simple end-punctuation if missing
+    const trimmed = t.trim();
+    const needsDot = trimmed && !/[.!?…]$/.test(trimmed);
+    const finalText = trimmed + (needsDot ? '.' : '');
+    const sep = els.transcript.textContent.endsWith('\n') || els.transcript.textContent.length === 0 ? '' : ' ';
+    els.transcript.textContent += (sep + finalText);
+    els.interim.textContent = '';
+    autosave();
+    updateCounters();
+    els.clear.disabled = els.transcript.textContent.trim().length === 0;
+    els.copy.disabled = els.clear.disabled;
+    els.download.disabled = els.clear.disabled;
+  }
+
+  function autosave(){
+    localStorage.setItem('stt-transcript', els.transcript.textContent);
+  }
+
+  function updateCounters(){
+    const t = els.transcript.textContent;
+    const words = t.trim() ? t.trim().split(/\s+/).length : 0;
+    const chars = t.length;
+    els.counters.textContent = `${words} words • ${chars} chars`;
+  }
+
+  els.transcript.addEventListener('input', () => {
+    autosave();
+    updateCounters();
+    const empty = els.transcript.textContent.trim().length === 0;
+    els.clear.disabled = empty;
+    els.copy.disabled = empty;
+    els.download.disabled = empty;
+  });
+
+  // ---------- Controls ----------
+  function start(){
+    if(!recognition || isRecording) return;
+    recognition.lang = els.language.value;
+    restartOnEnd = true;
+    isPaused = false;
+    try{
+      recognition.start();
+      isRecording = true;
+      startTimer();
+      setStatus('Listening…', true);
+      els.startStop.textContent = 'Stop';
+      els.pause.disabled = false;
+      els.clear.disabled = false;
+      els.copy.disabled = false;
+    }catch(e){
+      setStatus('Permission denied?');
+      console.warn(e);
     }
-    // Clear interim transcript if it exists
-    displayInterimTranscript('');
-}
+  }
 
-// Function to display interim transcript text in a dedicated element
-function displayInterimTranscript(text) {
-    let interimElement = document.getElementById("interimTranscript");
-    if (!interimElement) {
-        // Create an interim transcript element if it doesn't exist
-        interimElement = document.createElement("div");
-        interimElement.id = "interimTranscript";
-        interimElement.style.color = "gray"; // Style interim text differently
-        interimElement.style.fontStyle = "italic";
-        // Insert the interim element after the main transcript element
-        transcript.parentNode.insertBefore(interimElement, transcript.nextSibling);
+  function stop(){
+    if(!recognition || !isRecording) return;
+    restartOnEnd = false;
+    isRecording = false;
+    isPaused = false;
+    try { recognition.stop(); } catch(e){/* ignore */}
+    stopTimer();
+    setStatus('Stopped');
+    els.startStop.textContent = 'Start';
+    els.pause.disabled = true;
+  }
+
+  function pause(){
+    if(!recognition || !isRecording || isPaused) return;
+    isPaused = true;
+    restartOnEnd = false;
+    try { recognition.stop(); } catch(e){/* ignore */}
+    stopTimer();
+    setStatus('Paused');
+    els.pause.disabled = true;
+    els.startStop.textContent = 'Resume';
+  }
+
+  function resume(){
+    if(!recognition || !isRecording || !isPaused) return;
+    isPaused = false;
+    restartOnEnd = true;
+    try { recognition.start(); setStatus('Listening…', true); } catch(e){/* ignore */}
+    startTimer();
+    els.pause.disabled = false;
+    els.startStop.textContent = 'Stop';
+  }
+
+  els.startStop.addEventListener('click', () => {
+    if(!isRecording) {
+      start();
+    } else {
+      if(isPaused) resume(); else stop();
     }
-    interimElement.innerText = text;
-}
+  });
 
-// Function to append new transcript text and highlight it
-function appendTranscript(text) {
-    const newSpan = document.createElement('span');
-    newSpan.innerHTML = text + "<br>";
-    newSpan.classList.add('highlight');  // Highlight new text
-    transcript.appendChild(newSpan);
-    
-    // Scroll to the new text
-    transcript.scrollTop = transcript.scrollHeight;
-    
-    // Remove the highlight after 2 seconds
-    setTimeout(() => {
-        newSpan.classList.remove('highlight');
-    }, 2000);
-}
+  els.pause.addEventListener('click', () => {
+    if(isPaused) resume(); else pause();
+  });
 
-// Download TXT Logic
-function downloadTXT() {
-    const text = transcript.innerText;
-    const blob = new Blob([text], { type: 'text/plain' });
+  els.language.addEventListener('change', () => {
+    localStorage.setItem('stt-lang', els.language.value);
+    if(isRecording && !isPaused && recognition){
+      recognition.lang = els.language.value;
+    }
+  });
+
+  els.clear.addEventListener('click', () => {
+    if(confirm('Clear transcript?')){
+      els.transcript.textContent = '';
+      els.interim.textContent = '';
+      localStorage.removeItem('stt-transcript');
+      updateCounters();
+      els.clear.disabled = true;
+      els.copy.disabled = true;
+      els.download.disabled = true;
+      resetTimer();
+    }
+  });
+
+  els.copy.addEventListener('click', async () => {
+    try{
+      await navigator.clipboard.writeText(els.transcript.textContent);
+      els.copy.textContent = 'Copied!';
+      setTimeout(() => els.copy.textContent = 'Copy', 1200);
+    }catch(e){
+      alert('Copy failed.');
+    }
+  });
+
+  els.download.addEventListener('click', () => {
+    const blob = new Blob([els.transcript.textContent], {type:'text/plain;charset=utf-8'});
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = url;
-    a.download = 'transcript.txt';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-}
+    const stamp = new Date().toISOString().replace(/[:.]/g,'-');
+    a.href = url; a.download = `transcript-${stamp}.txt`;
+    document.body.appendChild(a); a.click();
+    setTimeout(()=>{ URL.revokeObjectURL(url); a.remove(); }, 0);
+  });
+
+  // Keyboard shortcut Ctrl/Cmd + Enter to toggle
+  window.addEventListener('keydown', (e) => {
+    if((e.ctrlKey || e.metaKey) && e.key === 'Enter'){
+      els.startStop.click();
+    }
+  });
+})();
